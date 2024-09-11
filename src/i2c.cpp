@@ -73,26 +73,23 @@ mrb_i2c_read(mrb_state *mrb, mrb_value self)
 
   mrb_get_args(mrb, "iiA", &addr, &len, &params);
 
-  buf = (char*)mrb_malloc(mrb, len);
-  memset(buf, 0, len);
-
 #ifndef NO_DEVICE
   if (mrb_array_p(params)) {
     WIRE(i2c)->beginTransmission((int)addr);
 
+    WIRE(i2c)->requestFrom(i2c->addr, len);
+
     mrb_int arylen = RARRAY_LEN(params);
-    buf = (uint8_t*)mrb_malloc(mrb, arylen);
     for (i=0; i<arylen; i++) {
-      buf[i] = (uint8_t)mrb_fixnum(mrb_ary_ref(mrb, arylen, i));
+      WIRE(i2c)->write((uint8_t)mrb_fixnum(mrb_ary_ref(mrb, arylen, i)));
     }
 
-    WIRE(i2c)->requestFrom(i2c->addr, len);
-    for (i=0; i<arylen; i++) {
-      WIRE(i2c)->write((char)buf[i]);
-    }
-     WIRE(i2c)->endTransmission((uint8_t)0);
+    WIRE(i2c)->endTransmission((uint8_t)0);
   }
 #endif
+
+  buf = (uint8_t*)mrb_malloc(mrb, len);
+  memset(buf, 0, len);
 
   WIRE(i2c)->requestFrom(i2c->addr, len);
   for (i=0; i<len; i++) {
@@ -100,7 +97,7 @@ mrb_i2c_read(mrb_state *mrb, mrb_value self)
     buf[i] = (uint8_t)WIRE(i2c)->read();
 #endif
   }
-  v = mrb_str_new(mrb, buf, len);
+  v = mrb_str_new(mrb, (const char*)buf, len);
   mrb_free(mrb, buf);
 
   return v;
