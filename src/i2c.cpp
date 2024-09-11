@@ -64,7 +64,7 @@ mrb_i2c_read(mrb_state *mrb, mrb_value self)
 {
   mrb_int addr, len, i;
   mrb_value v, params;
-  char *buf;
+  uint8_t *buf;
   mrb_esp32_i2c *i2c = (mrb_esp32_i2c*)DATA_PTR(self);
 
 #ifndef NO_DEVICE
@@ -78,7 +78,7 @@ mrb_i2c_read(mrb_state *mrb, mrb_value self)
 
 #ifndef NO_DEVICE
   if (mrb_array_p(params)) {
-    WIRE(i2c)->beginTransmission(addr);
+    WIRE(i2c)->beginTransmission((int)addr);
 
     mrb_int arylen = RARRAY_LEN(params);
     buf = (uint8_t*)mrb_malloc(mrb, arylen);
@@ -88,7 +88,7 @@ mrb_i2c_read(mrb_state *mrb, mrb_value self)
 
     WIRE(i2c)->requestFrom(i2c->addr, len);
     for (i=0; i<arylen; i++) {
-      WIRE(i2c)->write(buf[i]);
+      WIRE(i2c)->write((char)buf[i]);
     }
      WIRE(i2c)->endTransmission((uint8_t)0);
   }
@@ -97,7 +97,7 @@ mrb_i2c_read(mrb_state *mrb, mrb_value self)
   WIRE(i2c)->requestFrom(i2c->addr, len);
   for (i=0; i<len; i++) {
 #ifndef NO_DEVICE
-    buf[i] = (char)WIRE(i2c)->read();
+    buf[i] = (uint8_t)WIRE(i2c)->read();
 #endif
   }
   v = mrb_str_new(mrb, buf, len);
@@ -110,7 +110,8 @@ mrb_i2c_read(mrb_state *mrb, mrb_value self)
 static mrb_value
 mrb_i2c_write(mrb_state *mrb, mrb_value self)
 {
-  mrb_value addr, data, v;
+  mrb_value data, v;
+  mrb_int addr;
   uint8_t *buf;
   size_t len, i;
   mrb_bool stop = true;
@@ -148,7 +149,7 @@ mrb_i2c_write(mrb_state *mrb, mrb_value self)
   }
 
 #ifndef NO_DEVICE
-  WIRE(i2c)->beginTransmission(addr);
+  WIRE(i2c)->beginTransmission((int)addr);
   /* write data to I2C */
   for (i=0; i<len; i++) {
     WIRE(i2c)->write(buf[i]);
