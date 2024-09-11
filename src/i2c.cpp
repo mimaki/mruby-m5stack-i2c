@@ -160,7 +160,7 @@ mrb_i2c_write(mrb_state *mrb, mrb_value self)
 }
 
 void
-mrb_mruby_plato_i2c_esp32_gem_init(mrb_state *mrb)
+mrb_mruby_m5stach_i2c_gem_init(mrb_state *mrb)
 {
   struct RClass *i2c  = mrb_define_class_under(mrb, mrb->object_class, "I2C", mrb->object_class);
   MRB_SET_INSTANCE_TT(i2c, MRB_TT_DATA);
@@ -173,7 +173,7 @@ mrb_mruby_plato_i2c_esp32_gem_init(mrb_state *mrb)
 }
 
 void
-mrb_mruby_plato_i2c_esp32_gem_final(mrb_state *mrb)
+mrb_mruby_m5stach_i2c_gem_final(mrb_state *mrb)
 {
 }
 
