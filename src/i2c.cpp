@@ -81,7 +81,7 @@ mrb_i2c_read(mrb_state *mrb, mrb_value self)
 
     mrb_int arylen = RARRAY_LEN(params);
     for (i=0; i<arylen; i++) {
-      WIRE(i2c)->write((uint8_t)mrb_fixnum(mrb_ary_ref(mrb, arylen, i)));
+      WIRE(i2c)->write((uint8_t)mrb_fixnum(mrb_ary_ref(mrb, params, i)));
     }
 
     WIRE(i2c)->endTransmission((uint8_t)0);
