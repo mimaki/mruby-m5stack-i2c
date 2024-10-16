@@ -40,11 +40,11 @@ static const struct mrb_data_type mrb_i2c_type = { "mbedI2C", mrb_esp32_i2c_free
 static mrb_value
 mrb_i2c_init(mrb_state *mrb, mrb_value self)
 {
-  mrb_int id;
-  mrb_value params;
+  mrb_int id = 0;
+  mrb_value params = mrb_nil_value();
   mrb_esp32_i2c *i2c;
 
-  mrb_get_args(mrb, "io", &id, &params);
+  mrb_get_args(mrb, "|io", &id, &params);
 
   i2c = (mrb_esp32_i2c*)mrb_malloc(mrb, sizeof(mrb_esp32_i2c));
   /* initialize I2C object */
@@ -63,7 +63,7 @@ static mrb_value
 mrb_i2c_read(mrb_state *mrb, mrb_value self)
 {
   mrb_int addr, len, i;
-  mrb_value v, params;
+  mrb_value v, params = mrb_ary_new(mrb);
   uint8_t *buf;
   mrb_esp32_i2c *i2c = (mrb_esp32_i2c*)DATA_PTR(self);
 
@@ -71,32 +71,30 @@ mrb_i2c_read(mrb_state *mrb, mrb_value self)
   if (!i2c->i2c) mrb_raise(mrb, E_RUNTIME_ERROR, "I2C device is already closed.");
 #endif
 
-  mrb_get_args(mrb, "iiA", &addr, &len, &params);
+  mrb_get_args(mrb, "ii|A", &addr, &len, &params);
 
 #ifndef NO_DEVICE
   if (mrb_array_p(params)) {
-    WIRE(i2c)->beginTransmission((int)addr);
-
-    WIRE(i2c)->requestFrom(i2c->addr, len);
-
     mrb_int arylen = RARRAY_LEN(params);
-    for (i=0; i<arylen; i++) {
-      WIRE(i2c)->write((uint8_t)mrb_fixnum(mrb_ary_ref(mrb, params, i)));
+    if (arylen > 0) {
+      WIRE(i2c)->beginTransmission((int)addr);
+      for (i=0; i<arylen; i++) {
+        WIRE(i2c)->write((uint8_t)mrb_fixnum(mrb_ary_ref(mrb, params, i)));
+      }
+      WIRE(i2c)->endTransmission((uint8_t)0);
     }
-
-    WIRE(i2c)->endTransmission((uint8_t)0);
   }
 #endif
 
   buf = (uint8_t*)mrb_malloc(mrb, len);
   memset(buf, 0, len);
 
-  WIRE(i2c)->requestFrom(i2c->addr, len);
-  for (i=0; i<len; i++) {
 #ifndef NO_DEVICE
+  WIRE(i2c)->requestFrom((int)addr, len);
+  for (i=0; i<len; i++) {
     buf[i] = (uint8_t)WIRE(i2c)->read();
-#endif
   }
+#endif
   v = mrb_str_new(mrb, (const char*)buf, len);
   mrb_free(mrb, buf);
 
