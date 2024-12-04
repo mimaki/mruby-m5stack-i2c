@@ -32,19 +32,20 @@ Array of read data.
 
 ---
 
-### I2C#write(addr, len, *outdata) -> bool
+### I2C#write(addr, *outdata, stop=true) -> bool
 
 #### Parameters
 
 - addr  
 Slave address of I2C device.
 
-- len  
-Data length for read.
-
 - *outdata
 
 Output data.
+
+- stop
+
+This allows one controller device to send multiple transmissions while in control.
 
 #### Return
 
